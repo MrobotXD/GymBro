@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GymBro - Tu entrenador personal con IA</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#0e0e10;color:#f5f5f7;overflow-x:hidden}
+
+/* ===== ANIMATIONS ===== */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes floatSlow{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-20px) rotate(2deg)}}
+@keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes glow{0%,100%{box-shadow:0 0 30px rgba(10,132,255,.2)}50%{box-shadow:0 0 60px rgba(10,132,255,.5)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes slideUp{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideRight{from{opacity:0;transform:translateX(-80px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes rotateIn{from{opacity:0;transform:rotate(-10deg) scale(.9)}to{opacity:1;transform:rotate(0) scale(1)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes orbit{from{transform:rotate(0deg) translateX(120px) rotate(0deg)}to{transform:rotate(360deg) translateX(120px) rotate(-360deg)}}
+@keyframes typewriter{from{width:0}to{width:100%}}
+@keyframes blink{50%{border-color:transparent}}
+@keyframes ripple{0%{transform:scale(1);opacity:.4}100%{transform:scale(2.5);opacity:0}}
+@keyframes particleUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-120px) scale(0)}}
+@keyframes borderGlow{0%,100%{border-color:rgba(10,132,255,.3)}50%{border-color:rgba(10,132,255,.8)}}
+@keyframes countUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.reveal{opacity:0;transform:translateY(50px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-left{opacity:0;transform:translateX(-60px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal-left.visible{opacity:1;transform:translateX(0)}
+.reveal-right{opacity:0;transform:translateX(60px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal-right.visible{opacity:1;transform:translateX(0)}
+.reveal-scale{opacity:0;transform:scale(.85);transition:all .8s cubic-bezier(.16,1,.3,1)}
+.reveal-scale.visible{opacity:1;transform:scale(1)}
+
+/* ===== NAV ===== */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(14,14,16,.75);border-bottom:1px solid rgba(255,255,255,.04);transition:all .3s}
+nav.scrolled{background:rgba(14,14,16,.92);box-shadow:0 4px 30px rgba(0,0,0,.3)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0a84ff,#5ac8fa);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;animation:glow 3s infinite}
+.logo-text{font-weight:800;font-size:20px;color:#f5f5f7;letter-spacing:-.5px}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{color:rgba(235,235,245,.6);text-decoration:none;font-size:14px;font-weight:500;transition:color .3s}
+.nav-links a:hover{color:#0a84ff}
+.nav-cta{background:#0a84ff!important;color:#fff!important;padding:8px 20px;border-radius:20px;font-weight:600!important;transition:all .3s!important}
+.nav-cta:hover{background:#3898ff!important;transform:translateY(-1px);box-shadow:0 4px 20px rgba(10,132,255,.4)}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 24px 80px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;overflow:hidden}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.15}
+.hero-orb-1{width:500px;height:500px;background:#0a84ff;top:-100px;left:-100px;animation:floatSlow 8s infinite}
+.hero-orb-2{width:400px;height:400px;background:#5ac8fa;bottom:-50px;right:-100px;animation:floatSlow 10s infinite 2s}
+.hero-orb-3{width:300px;height:300px;background:#bf5af2;top:30%;left:50%;animation:floatSlow 12s infinite 4s}
+.hero-particles{position:absolute;inset:0;pointer-events:none}
+.particle{position:absolute;width:4px;height:4px;background:#0a84ff;border-radius:50%;animation:particleUp 3s infinite}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%)}
+.hero-content{max-width:1200px;width:100%;display:flex;align-items:center;gap:60px;position:relative;z-index:2}
+.hero-text{flex:1}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:20px;background:rgba(10,132,255,.1);border:1px solid rgba(10,132,255,.25);font-size:13px;color:#0a84ff;font-weight:600;margin-bottom:24px;animation:slideUp .8s ease-out both,borderGlow 3s infinite}
+.hero-badge .dot{width:6px;height:6px;border-radius:3px;background:#30d158;animation:pulse 2s infinite}
+.hero-h1{font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px}
+.hero-h1 .gradient{background:linear-gradient(135deg,#0a84ff,#5ac8fa,#bf5af2);background-size:200% 200%;animation:gradientShift 4s ease infinite;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:18px;color:rgba(235,235,245,.55);line-height:1.6;max-width:480px;margin-bottom:36px}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:14px;background:linear-gradient(135deg,#0a84ff,#3898ff);color:#fff;font-weight:700;font-size:16px;text-decoration:none;transition:all .3s;border:none;cursor:pointer;position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);animation:shimmer 3s infinite}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(10,132,255,.4)}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:14px;background:rgba(255,255,255,.06);color:#f5f5f7;font-weight:600;font-size:16px;text-decoration:none;transition:all .3s;border:1px solid rgba(255,255,255,.08);cursor:pointer}
+.btn-secondary:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.hero-phone{flex:0 0 300px;position:relative;animation:float 6s ease-in-out infinite}
+.phone-mock{width:280px;height:560px;background:#1c1c1e;border-radius:40px;border:3px solid rgba(255,255,255,.1);overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);animation:glow 4s infinite}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#0e0e10;border-radius:0 0 18px 18px;z-index:5}
+.phone-screen{padding:44px 20px 20px;height:100%;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg,#0e0e10,#121214)}
+.phone-card{background:rgba(28,28,30,.65);border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,.06)}
+.phone-card-title{font-size:11px;color:rgba(235,235,245,.3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.phone-card-value{font-size:22px;font-weight:800;color:#f5f5f7}
+.phone-card-sub{font-size:10px;color:rgba(235,235,245,.4);margin-top:2px}
+.phone-bar{height:6px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:8px}
+.phone-bar-fill{height:100%;border-radius:3px;background:#0a84ff;width:65%}
+.phone-rank{display:flex;align-items:center;gap:10px}
+.phone-rank-icon{font-size:28px}
+.phone-rank-name{font-size:14px;font-weight:700;color:#8B6914}
+.phone-rank-xp{font-size:10px;color:rgba(235,235,245,.4)}
+.orbit-ring{position:absolute;width:340px;height:340px;top:50%;left:50%;transform:translate(-50%,-50%);border:1px dashed rgba(10,132,255,.1);border-radius:50%;pointer-events:none}
+.orbit-emoji{position:absolute;font-size:24px;animation:orbit 15s linear infinite}
+.orbit-emoji:nth-child(2){animation-delay:-5s}
+.orbit-emoji:nth-child(3){animation-delay:-10s}
+
+/* ===== STATS BAR ===== */
+.stats-bar{padding:60px 24px;background:rgba(255,255,255,.02);border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04)}
+.stats-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:30px;text-align:center}
+.stat-num{font-size:clamp(28px,4vw,42px);font-weight:900;background:linear-gradient(135deg,#0a84ff,#5ac8fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-1px}
+.stat-label{font-size:13px;color:rgba(235,235,245,.4);margin-top:4px;font-weight:500}
+
+/* ===== FEATURES ===== */
+.features{padding:100px 24px;max-width:1200px;margin:0 auto}
+.section-label{font-size:13px;font-weight:700;color:#0a84ff;text-transform:uppercase;letter-spacing:3px;text-align:center;margin-bottom:12px}
+.section-title{font-size:clamp(28px,4vw,44px);font-weight:900;text-align:center;letter-spacing:-1px;margin-bottom:16px}
+.section-sub{font-size:16px;color:rgba(235,235,245,.45);text-align:center;max-width:550px;margin:0 auto 60px;line-height:1.6}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feature-card{background:rgba(28,28,30,.5);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:32px 28px;transition:all .4s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .4s}
+.feature-card:hover{transform:translateY(-6px);border-color:rgba(10,132,255,.2);box-shadow:0 20px 40px rgba(0,0,0,.3)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:18px;background:rgba(10,132,255,.1);border:1px solid rgba(10,132,255,.15)}
+.feature-card:nth-child(2) .feature-icon{background:rgba(48,209,88,.1);border-color:rgba(48,209,88,.15)}
+.feature-card:nth-child(3) .feature-icon{background:rgba(255,149,0,.1);border-color:rgba(255,149,0,.15)}
+.feature-card:nth-child(4) .feature-icon{background:rgba(191,90,242,.1);border-color:rgba(191,90,242,.15)}
+.feature-card:nth-child(5) .feature-icon{background:rgba(255,69,58,.1);border-color:rgba(255,69,58,.15)}
+.feature-card:nth-child(6) .feature-icon{background:rgba(90,200,250,.1);border-color:rgba(90,200,250,.15)}
+.feature-title{font-size:17px;font-weight:700;margin-bottom:8px;color:#f5f5f7}
+.feature-desc{font-size:14px;color:rgba(235,235,245,.45);line-height:1.55}
+
+/* ===== RANKS SHOWCASE ===== */
+.ranks-section{padding:100px 24px;position:relative;overflow:hidden}
+.ranks-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(10,132,255,.06),transparent 70%)}
+.ranks-content{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:60px}
+.ranks-text{flex:1}
+.ranks-text h2{font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bottom:16px}
+.ranks-text p{font-size:15px;color:rgba(235,235,245,.45);line-height:1.6;margin-bottom:30px}
+.ranks-path{flex:0 0 340px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.rank-node{display:flex;align-items:center;gap:14px;padding:8px 16px;border-radius:16px;transition:all .4s;width:100%}
+.rank-node:hover{background:rgba(255,255,255,.04);transform:scale(1.03)}
+.rank-circle{width:46px;height:46px;border-radius:23px;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid;flex-shrink:0;transition:all .3s}
+.rank-circle.active{animation:pulse 2s infinite}
+.rank-info{flex:1}
+.rank-name{font-size:14px;font-weight:700}
+.rank-xp{font-size:11px;opacity:.5}
+.rank-connector{width:3px;height:20px;border-radius:1.5px;margin-left:37px}
+
+/* ===== AI SECTION ===== */
+.ai-section{padding:100px 24px;background:rgba(255,255,255,.015);border-top:1px solid rgba(255,255,255,.04)}
+.ai-content{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:60px}
+.ai-visual{flex:0 0 400px;position:relative}
+.ai-chat{background:rgba(28,28,30,.6);border-radius:24px;border:1px solid rgba(255,255,255,.06);padding:24px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.ai-msg{padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.5;max-width:85%;animation:slideUp .6s ease-out both}
+.ai-msg.user{background:rgba(10,132,255,.15);border:1px solid rgba(10,132,255,.2);align-self:flex-end;color:#5ac8fa;animation-delay:.2s}
+.ai-msg.bot{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);align-self:flex-start;color:rgba(235,235,245,.7);animation-delay:.6s}
+.ai-msg.bot span{color:#0a84ff;font-weight:600}
+.ai-sparkle{position:absolute;font-size:20px;animation:float 3s infinite}
+.ai-text{flex:1}
+.ai-text h2{font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:-1px;margin-bottom:16px}
+.ai-text p{font-size:15px;color:rgba(235,235,245,.45);line-height:1.6;margin-bottom:20px}
+.ai-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.ai-list li{display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(235,235,245,.6)}
+.ai-list li::before{content:'';width:8px;height:8px;border-radius:4px;background:#0a84ff;flex-shrink:0}
+
+/* ===== CTA ===== */
+.cta{padding:100px 24px;text-align:center;position:relative;overflow:hidden}
+.cta::before{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;background:radial-gradient(circle,rgba(10,132,255,.1),transparent 60%);transform:translate(-50%,-50%);pointer-events:none}
+.cta h2{font-size:clamp(32px,5vw,52px);font-weight:900;letter-spacing:-1.5px;margin-bottom:16px;position:relative;z-index:1}
+.cta h2 .gradient{background:linear-gradient(135deg,#0a84ff,#5ac8fa,#30d158);background-size:200% 200%;animation:gradientShift 4s ease infinite;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cta p{font-size:16px;color:rgba(235,235,245,.45);margin-bottom:36px;position:relative;z-index:1}
+.cta-btns{display:flex;justify-content:center;gap:14px;position:relative;z-index:1;flex-wrap:wrap}
+.ripple-circle{position:absolute;width:200px;height:200px;border-radius:50%;border:1px solid rgba(10,132,255,.15);top:50%;left:50%;transform:translate(-50%,-50%);animation:ripple 3s infinite}
+.ripple-circle:nth-child(2){animation-delay:1s}
+.ripple-circle:nth-child(3){animation-delay:2s}
+
+/* ===== FOOTER ===== */
+footer{padding:40px 24px;border-top:1px solid rgba(255,255,255,.04);text-align:center}
+footer p{font-size:13px;color:rgba(235,235,245,.25)}
+footer a{color:#0a84ff;text-decoration:none}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .hero-content{flex-direction:column;text-align:center}
+  .hero-sub{margin:0 auto 36px}
+  .hero-btns{justify-content:center}
+  .hero-phone{flex:none}
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:24px}
+  .ranks-content,.ai-content{flex-direction:column}
+  .ai-visual{flex:none;width:100%;max-width:400px}
+  .ranks-path{flex:none;width:100%;max-width:360px}
+  .nav-links{display:none}
+}
+@media(max-width:600px){
+  .features-grid{grid-template-columns:1fr}
+  .hero-phone{flex:none;transform:scale(.85)}
+  .orbit-ring{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">
+    <div class="logo-icon">G</div>
+    <span class="logo-text">GymBro</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Funciones</a>
+    <a href="#ranks">Rangos</a>
+    <a href="#ai">IA</a>
+    <a href="#download" class="nav-cta">Descargar</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-particles">
+      <div class="particle" style="left:10%;top:80%;animation-delay:0s"></div>
+      <div class="particle" style="left:25%;top:70%;animation-delay:.8s"></div>
+      <div class="particle" style="left:45%;top:85%;animation-delay:1.6s"></div>
+      <div class="particle" style="left:65%;top:75%;animation-delay:.4s"></div>
+      <div class="particle" style="left:80%;top:82%;animation-delay:1.2s"></div>
+      <div class="particle" style="left:90%;top:78%;animation-delay:2s"></div>
+    </div>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-badge"><span class="dot"></span> Impulsado por IA</div>
+      <h1 class="hero-h1">
+        Tu gimnasio,<br><span class="gradient">tu juego.</span>
+      </h1>
+      <p class="hero-sub">
+        Planes de entrenamiento personalizados con IA, seguimiento de nutricion,
+        y un sistema de rangos que convierte cada rep en XP. Sube de nivel entrenando.
+      </p>
+      <div class="hero-btns">
+        <a href="#download" class="btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar gratis
+        </a>
+        <a href="#features" class="btn-secondary">
+          Ver funciones
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-phone">
+      <div class="phone-mock">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-card">
+            <div class="phone-card-title">Bienvenido</div>
+            <div class="phone-card-value">Buenos dias, Bro</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div class="phone-card" style="flex:1;text-align:center">
+              <div class="phone-card-value" style="color:#0a84ff;font-size:20px">12</div>
+              <div class="phone-card-sub">Sesiones</div>
+            </div>
+            <div class="phone-card" style="flex:1;text-align:center">
+              <div style="font-size:18px">🔥</div>
+              <div class="phone-card-value" style="color:#ff9500;font-size:20px">5</div>
+              <div class="phone-card-sub">Racha</div>
+            </div>
+            <div class="phone-card" style="flex:1;text-align:center">
+              <div class="phone-card-value" style="color:#0a84ff;font-size:20px">78%</div>
+              <div class="phone-card-sub">Progreso</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-rank">
+              <div class="phone-rank-icon">🪵</div>
+              <div>
+                <div class="phone-rank-name">Madera I</div>
+                <div class="phone-rank-xp">1,250 / 1,800 XP</div>
+              </div>
+            </div>
+            <div class="phone-bar"><div class="phone-bar-fill" style="width:70%"></div></div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-title">Entreno de hoy</div>
+            <div style="font-size:13px;font-weight:600;color:#f5f5f7">Dia 3 - Espalda y Biceps</div>
+            <div class="phone-card-sub">6 ejercicios · 45 min</div>
+          </div>
+        </div>
+      </div>
+      <div class="orbit-ring">
+        <div class="orbit-emoji" style="top:0;left:50%">💪</div>
+        <div class="orbit-emoji" style="top:50%;left:0">🏋️</div>
+        <div class="orbit-emoji" style="bottom:0;right:50%">🔥</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-bar">
+  <div class="stats-grid">
+    <div class="reveal">
+      <div class="stat-num" data-count="1324">0</div>
+      <div class="stat-label">Ejercicios con GIF</div>
+    </div>
+    <div class="reveal" style="transition-delay:.1s">
+      <div class="stat-num" data-count="24">0</div>
+      <div class="stat-label">Niveles de rango</div>
+    </div>
+    <div class="reveal" style="transition-delay:.2s">
+      <div class="stat-num" data-count="100">0%</div>
+      <div class="stat-label">Gratis</div>
+    </div>
+    <div class="reveal" style="transition-delay:.3s">
+      <div class="stat-num">IA</div>
+      <div class="stat-label">Planes personalizados</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-label reveal">Funciones</div>
+  <h2 class="section-title reveal">Todo lo que necesitas para entrenar</h2>
+  <p class="section-sub reveal">Diseñada para que cada sesion cuente. Sin distracciones, pura funcionalidad.</p>
+
+  <div class="features-grid">
+    <div class="feature-card reveal" style="--accent:#0a84ff;transition-delay:.1s">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">Planes con IA</div>
+      <div class="feature-desc">La IA genera planes personalizados segun tu nivel, equipo disponible y musculos objetivo.</div>
+    </div>
+    <div class="feature-card reveal" style="--accent:#30d158;transition-delay:.2s">
+      <div class="feature-icon">📸</div>
+      <div class="feature-title">Escaneo de comida</div>
+      <div class="feature-desc">Toma una foto de tu comida y la IA calcula calorias, proteinas, carbos y grasas al instante.</div>
+    </div>
+    <div class="feature-card reveal" style="--accent:#ff9500;transition-delay:.3s">
+      <div class="feature-icon">🏆</div>
+      <div class="feature-title">Sistema de rangos</div>
+      <div class="feature-desc">Gana XP con cada entrenamiento y sube de Madera a Diamante. Tu progreso es un juego.</div>
+    </div>
+    <div class="feature-card reveal" style="--accent:#bf5af2;transition-delay:.4s">
+      <div class="feature-icon">🎬</div>
+      <div class="feature-title">GIFs de ejercicios</div>
+      <div class="feature-desc">1,324 ejercicios con animaciones GIF mostrando la tecnica correcta mientras entrenas.</div>
+    </div>
+    <div class="feature-card reveal" style="--accent:#ff453a;transition-delay:.5s">
+      <div class="feature-icon">📅</div>
+      <div class="feature-title">Calendario inteligente</div>
+      <div class="feature-desc">Visualiza tu agenda de entrenos, dias de descanso, y rutinas completadas en un calendario.</div>
+    </div>
+    <div class="feature-card reveal" style="--accent:#5ac8fa;transition-delay:.6s">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Chat con IA</div>
+      <div class="feature-desc">Preguntale cualquier duda sobre nutricion, tecnica, o rutinas. Tu entrenador 24/7.</div>
+    </div>
+  </div>
+</section>
+
+<!-- RANKS -->
+<section class="ranks-section" id="ranks">
+  <div class="ranks-content">
+    <div class="ranks-text reveal-left">
+      <div class="section-label" style="text-align:left">Sistema de rangos</div>
+      <h2>Convierte cada <span style="color:#FFD700">rep</span> en <span style="color:#0a84ff">XP</span></h2>
+      <p>
+        24 niveles. 8 tiers. Un camino desde Madera hasta Diamante.
+        Cada entrenamiento te da XP, cada ejercicio cuenta.
+        Compite contigo mismo y desbloquea rangos.
+      </p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="padding:8px 16px;border-radius:12px;background:rgba(139,105,20,.15);border:1px solid rgba(139,105,20,.3);font-size:13px;color:#8B6914;font-weight:600">+100 XP / entreno</div>
+        <div style="padding:8px 16px;border-radius:12px;background:rgba(10,132,255,.1);border:1px solid rgba(10,132,255,.25);font-size:13px;color:#0a84ff;font-weight:600">+15 XP / ejercicio</div>
+        <div style="padding:8px 16px;border-radius:12px;background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.25);font-size:13px;color:#30d158;font-weight:600">+50 XP bonus</div>
+      </div>
+    </div>
+    <div class="ranks-path reveal-right">
+      <div class="rank-node">
+        <div class="rank-circle" style="border-color:#B9F2FF;background:rgba(185,242,255,.1)">🔱</div>
+        <div class="rank-info"><div class="rank-name" style="color:#B9F2FF">Diamante III</div><div class="rank-xp">155,000 XP</div></div>
+      </div>
+      <div class="rank-connector" style="background:rgba(185,242,255,.2)"></div>
+      <div class="rank-node">
+        <div class="rank-circle" style="border-color:#B9F2FF;background:rgba(185,242,255,.1)">🌟</div>
+        <div class="rank-info"><div class="rank-name" style="color:#B9F2FF">Diamante II</div><div class="rank-xp">125,000 XP</div></div>
+      </div>
+      <div class="rank-connector" style="background:rgba(185,242,255,.2)"></div>
+      <div class="rank-node">
+        <div class="rank-circle" style="border-color:#B9F2FF;background:rgba(185,242,255,.1)">💠</div>
+        <div class="rank-info"><div class="rank-name" style="color:#B9F2FF">Diamante I</div><div class="rank-xp">100,000 XP</div></div>
+      </div>
+      <div class="rank-connector" style="background:rgba(229,228,226,.15)"></div>
+      <div class="rank-node">
+        <div class="rank-circle" style="border-color:#E5E4E2;background:rgba(229,228,226,.1)">✨</div>
+        <div class="rank-info"><div class="rank-name" style="color:#E5E4E2">Platino III</div><div class="rank-xp">85,000 XP</div></div>
+      </div>
+      <div class="rank-connector" style="background:rgba(255,215,0,.15)"></div>
+      <div class="rank-node">
+        <div class="rank-circle" style="border-color:#FFD700;background:rgba(255,215,0,.1)">🏆</div>
+        <div class="rank-info"><div class="rank-name" style="color:#FFD700">Oro III</div><div class="rank-xp">48,000 XP</div></div>
+      </div>
+      <div class="rank-connector" style="background:rgba(192,192,192,.15)"></div>
+      <div class="rank-node">
+        <div class="rank-circle" style="border-color:#C0C0C0;background:rgba(192,192,192,.1)">⚡</div>
+        <div class="rank-info"><div class="rank-name" style="color:#C0C0C0">Plata III</div><div class="rank-xp">27,000 XP</div></div>
+      </div>
+      <div class="rank-connector" style="background:rgba(205,127,50,.15)"></div>
+      <div class="rank-node">
+        <div class="rank-circle active" style="border-color:#8B6914;background:#8B6914">🌱</div>
+        <div class="rank-info"><div class="rank-name" style="color:#8B6914">Madera I</div><div class="rank-xp" style="color:#8B6914">Empieza aqui</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI SECTION -->
+<section class="ai-section" id="ai">
+  <div class="ai-content">
+    <div class="ai-visual reveal-left">
+      <div class="ai-chat">
+        <div class="ai-msg user">Dame una rutina de pecho para hacer en casa sin equipo</div>
+        <div class="ai-msg bot">
+          Aqui tienes tu rutina de <span>pecho en casa</span>:<br><br>
+          1. Flexiones clasicas — 4x15<br>
+          2. Flexiones diamante — 3x12<br>
+          3. Flexiones declinadas — 3x10<br>
+          4. Fondos en silla — 3x12<br>
+          5. Isometrico en pared — 3x30s
+        </div>
+      </div>
+      <div class="ai-sparkle" style="top:-10px;right:-10px">✨</div>
+      <div class="ai-sparkle" style="bottom:20px;left:-15px;animation-delay:1s">🤖</div>
+    </div>
+    <div class="ai-text reveal-right">
+      <div class="section-label" style="text-align:left">Inteligencia artificial</div>
+      <h2>Tu entrenador <span style="color:#0a84ff">nunca duerme</span></h2>
+      <p>
+        Potenciado por Llama 3.3 70B, GymBro genera planes de entrenamiento
+        completamente personalizados y analiza tu comida con solo una foto.
+      </p>
+      <ul class="ai-list">
+        <li>Planes adaptados a tu nivel y equipo</li>
+        <li>Analisis nutricional con camara</li>
+        <li>Chat ilimitado para dudas</li>
+        <li>Seleccion de musculos interactiva</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="download">
+  <div class="ripple-circle"></div>
+  <div class="ripple-circle"></div>
+  <div class="ripple-circle"></div>
+  <h2>Empieza tu camino<br><span class="gradient">de Madera a Diamante</span></h2>
+  <p>Descarga GymBro gratis y convierte cada entrenamiento en progreso real.</p>
+  <div class="cta-btns">
+    <a href="#" class="btn-primary" style="font-size:18px;padding:16px 40px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+      App Store
+    </a>
+    <a href="#" class="btn-primary" style="font-size:18px;padding:16px 40px;background:linear-gradient(135deg,#30d158,#34c759)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.77c-.63-.37-.97-.97-.97-1.7V1.93c0-.73.34-1.33.97-1.7L14.62 12 3.18 23.77zm1.68-26.17L16.87 7.52l-3.21 2.94L5.7.57c-.3-.17-.58-.16-.84.03zM22.54 10.82l-3.78 2.08-3.52-3.22 3.52-3.22 3.78 2.08c1.05.58 1.05 1.7 0 2.28zM4.86 23.6l7.96-9.92 3.21 2.94L4.86 23.6z"/></svg>
+      Google Play
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>GymBro &copy; 2026 · Hecho con 💪 y mucho cafe · <a href="#">@gymbro</a></p>
+</footer>
+
+<script>
+// Navbar scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+  observer.observe(el);
+});
+
+// Counter animation
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = parseInt(el.dataset.count);
+    if (!target) return;
+    const suffix = el.textContent.includes('%') ? '%' : '';
+    let current = 0;
+    const step = Math.ceil(target / 60);
+    const timer = setInterval(() => {
+      current += step;
+      if (current >= target) { current = target; clearInterval(timer); }
+      el.textContent = current.toLocaleString() + suffix;
+    }, 25);
+    counterObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// Parallax on hero orbs
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  document.querySelectorAll('.hero-orb').forEach((orb, i) => {
+    orb.style.transform = `translateY(${y * (0.1 + i * 0.05)}px)`;
+  });
+});
+</script>
+</body>
+</html>
