@@ -9,6 +9,8 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0a0a0a"
     },
     "ios": {
@@ -17,6 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a0a0a"
       },
       "package": "com.gymbro.app",
