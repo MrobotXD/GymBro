@@ -21,20 +21,25 @@ function AppContent() {
   const isMobileViewport = width <= MOBILE_BREAKPOINT;
 
   useEffect(() => {
+    if (authLoading) return;
     (async () => {
-      const [seenLanding, onboardingDone] = await Promise.all([
-        AsyncStorage.getItem('gymbro_landing_seen'),
-        AsyncStorage.getItem('gymbro_onboarding_done'),
-      ]);
-      if (seenLanding !== 'true') {
+      try {
+        const [seenLanding, onboardingDone] = await Promise.all([
+          AsyncStorage.getItem('gymbro_landing_seen'),
+          AsyncStorage.getItem('gymbro_onboarding_done'),
+        ]);
+        if (seenLanding !== 'true') {
+          setInitialRoute('landing');
+        } else if (!session) {
+          setInitialRoute('auth');
+        } else if (onboardingDone !== 'true') {
+          setInitialRoute('onboarding');
+        } else {
+          try { await syncFromCloud(session.user.id); } catch {}
+          setInitialRoute('(tabs)');
+        }
+      } catch {
         setInitialRoute('landing');
-      } else if (!session) {
-        setInitialRoute('auth');
-      } else if (onboardingDone !== 'true') {
-        setInitialRoute('onboarding');
-      } else {
-        await syncFromCloud(session.user.id);
-        setInitialRoute('(tabs)');
       }
     })();
   }, [authLoading, session]);
